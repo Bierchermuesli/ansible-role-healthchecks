@@ -1,0 +1,28 @@
+---
+galaxy_info:
+  author: sgr
+  description: Deploy healthchecks.io cron monitoring on Debian/Ubuntu (bare metal or LXC)
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - monitoring
+    - healthchecks
+    - cron
+    - django
+    - sqlite
+    - postgresql
+
+# PostgreSQL dependency is optional — only needed when healthchecks_db: postgres.
+# In that case, add geerlingguy.postgresql to your playbook dependencies and set:
+#   postgresql_databases: [{name: "{{ healthchecks_db_name }}"}]
+#   postgresql_users: [{name: "{{ healthchecks_db_user }}", password: "...", db: "{{ healthchecks_db_name }}", priv: ALL}]
+dependencies: []

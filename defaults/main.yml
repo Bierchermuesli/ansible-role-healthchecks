@@ -1,0 +1,48 @@
+---
+healthchecks_version: "master"
+healthchecks_repo: "https://github.com/healthchecks/healthchecks.git"
+healthchecks_install_dir: "/opt/healthchecks"
+healthchecks_venv: "/opt/healthchecks/venv"
+healthchecks_user: "healthchecks"
+healthchecks_group: "healthchecks"
+
+# Database — "sqlite" or "postgres"
+healthchecks_db: "sqlite"
+
+# PostgreSQL (only used when healthchecks_db: postgres)
+healthchecks_db_name: "hc"
+healthchecks_db_user: "hc"
+healthchecks_db_password: ""
+healthchecks_db_host: "localhost"
+healthchecks_db_port: 5432
+
+# Application
+healthchecks_secret_key: ""
+healthchecks_debug: false
+healthchecks_allowed_hosts: "{{ inventory_hostname }}"
+healthchecks_site_root: "https://{{ inventory_hostname }}"
+healthchecks_site_name: "Healthchecks"
+healthchecks_default_from_email: "healthchecks@{{ inventory_hostname }}"
+healthchecks_ping_endpoint: "https://{{ inventory_hostname }}/ping/"
+healthchecks_ping_email_domain: "{{ inventory_hostname }}"
+healthchecks_registration_open: false
+healthchecks_email_use_verification: true
+
+# Email — defaults to local postfix relay
+healthchecks_email_host: "localhost"
+healthchecks_email_port: 25
+healthchecks_email_use_tls: false
+healthchecks_email_host_user: ""
+healthchecks_email_host_password: ""
+
+# uwsgi
+healthchecks_uwsgi_listen_ipv6: true
+healthchecks_uwsgi_processes: 4
+
+# Misc toggles
+healthchecks_apprise_enabled: false
+healthchecks_prometheus_enabled: true
+healthchecks_webhooks_enabled: true
+healthchecks_shell_enabled: false
+healthchecks_integrations_allow_private_ips: false
+healthchecks_ping_body_limit: 10000

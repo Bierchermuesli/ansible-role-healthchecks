@@ -1,0 +1,33 @@
+# Managed by Ansible — do not edit manually
+[uwsgi]
+strict
+master
+die-on-term
+{% if healthchecks_uwsgi_listen_ipv6 %}
+http-socket = [::]:8000
+{% else %}
+http-socket = 0.0.0.0:8000
+{% endif %}
+log-x-forwarded-for = true
+harakiri = 10
+buffer-size = 32768
+post-buffering = 16192
+processes = {{ healthchecks_uwsgi_processes }}
+auto-procname
+enable-threads
+threads = 1
+chdir = {{ healthchecks_install_dir }}
+module = hc.wsgi:application
+env = DJANGO_SETTINGS_MODULE=hc.settings
+thunder-lock
+disable-write-exception
+max-fd = 10000
+
+# Static file compression
+check-static = static-collected/
+static-gzip-dir = static-collected/CACHE
+
+# Run migrations on startup, then start background workers
+hook-pre-app = exec:{{ healthchecks_venv }}/bin/python manage.py migrate
+attach-daemon = {{ healthchecks_venv }}/bin/python manage.py sendalerts --skip-checks
+attach-daemon = {{ healthchecks_venv }}/bin/python manage.py sendreports --loop --skip-checks

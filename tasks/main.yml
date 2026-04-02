@@ -1,0 +1,9 @@
+---
+- import_tasks: install.yml
+  tags: [healthchecks, install]
+
+- import_tasks: configure.yml
+  tags: [healthchecks, configure]
+
+- import_tasks: service.yml
+  tags: [healthchecks, service]

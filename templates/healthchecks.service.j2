@@ -1,0 +1,23 @@
+# Managed by Ansible — do not edit manually
+[Unit]
+Description=Healthchecks cron monitoring
+Documentation=https://healthchecks.io/docs/
+After=network.target{% if healthchecks_db == 'postgres' %} postgresql.service{% endif %}
+{% if healthchecks_db == 'postgres' %}Requires=postgresql.service
+{% endif %}
+
+[Service]
+Type=simple
+User={{ healthchecks_user }}
+Group={{ healthchecks_group }}
+WorkingDirectory={{ healthchecks_install_dir }}
+EnvironmentFile={{ healthchecks_install_dir }}/.env
+ExecStart={{ healthchecks_venv }}/bin/uwsgi {{ healthchecks_install_dir }}/uwsgi.ini
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=healthchecks
+
+[Install]
+WantedBy=multi-user.target

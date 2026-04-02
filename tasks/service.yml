@@ -1,0 +1,18 @@
+---
+- name: Deploy systemd service unit
+  ansible.builtin.template:
+    src: healthchecks.service.j2
+    dest: /etc/systemd/system/healthchecks.service
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart healthchecks
+
+- name: Flush handlers before enabling service
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start healthchecks
+  ansible.builtin.service:
+    name: healthchecks
+    state: started
+    enabled: true

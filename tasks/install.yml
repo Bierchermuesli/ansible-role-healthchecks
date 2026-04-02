@@ -1,0 +1,98 @@
+---
+- name: Install base system dependencies
+  ansible.builtin.apt:
+    name:
+      - git
+      - python3
+      - python3-venv
+      - python3-pip
+      - python3-dev
+      - gcc
+      - libcurl4-openssl-dev
+      - libssl-dev
+    state: present
+    update_cache: true
+
+- name: Install PostgreSQL client libraries
+  ansible.builtin.apt:
+    name: libpq-dev
+    state: present
+  when: healthchecks_db == 'postgres'
+
+- name: Create healthchecks system group
+  ansible.builtin.group:
+    name: "{{ healthchecks_group }}"
+    system: true
+
+- name: Create healthchecks system user
+  ansible.builtin.user:
+    name: "{{ healthchecks_user }}"
+    group: "{{ healthchecks_group }}"
+    system: true
+    home: "{{ healthchecks_install_dir }}"
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Create install directory
+  ansible.builtin.file:
+    path: "{{ healthchecks_install_dir }}"
+    state: directory
+    owner: "{{ healthchecks_user }}"
+    group: "{{ healthchecks_group }}"
+    mode: "0755"
+
+- name: Mark install directory as git safe
+  community.general.git_config:
+    name: safe.directory
+    value: "{{ healthchecks_install_dir }}"
+    scope: global
+
+- name: Clone healthchecks repository
+  ansible.builtin.git:
+    repo: "{{ healthchecks_repo }}"
+    dest: "{{ healthchecks_install_dir }}"
+    version: "{{ healthchecks_version }}"
+    force: true
+  notify: restart healthchecks
+
+- name: Set ownership of install directory
+  ansible.builtin.file:
+    path: "{{ healthchecks_install_dir }}"
+    state: directory
+    owner: "{{ healthchecks_user }}"
+    group: "{{ healthchecks_group }}"
+    recurse: true
+  changed_when: false
+
+- name: Create virtualenv and install requirements
+  ansible.builtin.pip:
+    requirements: "{{ healthchecks_install_dir }}/requirements.txt"
+    virtualenv: "{{ healthchecks_venv }}"
+    virtualenv_command: python3 -m venv
+    extra_args: "--upgrade"
+  notify: restart healthchecks
+
+- name: Install uwsgi into virtualenv
+  ansible.builtin.pip:
+    name: uwsgi
+    virtualenv: "{{ healthchecks_venv }}"
+    virtualenv_command: python3 -m venv
+  notify: restart healthchecks
+
+- name: Collect static files
+  ansible.builtin.command:
+    cmd: "{{ healthchecks_venv }}/bin/python manage.py collectstatic --noinput"
+    chdir: "{{ healthchecks_install_dir }}"
+  environment:
+    SECRET_KEY: "{{ healthchecks_secret_key }}"
+    DB: "{{ 'postgres' if healthchecks_db == 'postgres' else 'sqlite3' }}"
+  changed_when: false
+
+- name: Compress static assets
+  ansible.builtin.command:
+    cmd: "{{ healthchecks_venv }}/bin/python manage.py compress"
+    chdir: "{{ healthchecks_install_dir }}"
+  environment:
+    SECRET_KEY: "{{ healthchecks_secret_key }}"
+    DB: "{{ 'postgres' if healthchecks_db == 'postgres' else 'sqlite3' }}"
+  changed_when: false
